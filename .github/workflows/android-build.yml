@@ -1,39 +1,31 @@
-name: Android CI/CD
+name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:  # 允许手动触发
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # 步骤 1：检出代码
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4  # 更新 checkout 到 v4
 
-      # 步骤 2：设置 JDK 环境
-      - name: Set up JDK 17
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '11'
           distribution: 'temurin'
 
-      # 步骤 3：赋予 Gradle 执行权限（关键！）
       - name: Grant Gradle permission
         run: chmod +x gradlew
 
-      # 步骤 4：构建 Release APK
-      - name: Build APK with Gradle
+      - name: Build Release APK
         run: ./gradlew assembleRelease
 
-      # 步骤 5：上传 APK 产物（保存 7 天）
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v3
+      - name: Upload APK
+        uses: actions/upload-artifact@v4  # 修改为 v4 最新版
         with:
           name: app-release
-          path: app/build/outputs/apk/release/app-release.apk
-          retention-days: 7
+          path: app/build/outputs/apk/release/app-release.apk  # 确保路径正确
