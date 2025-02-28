@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # 更新 checkout 到 v4
+        uses: actions/checkout@v4
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -24,8 +24,12 @@ jobs:
       - name: Build Release APK
         run: ./gradlew assembleRelease
 
+      # 调试步骤：验证 APK 路径和文件名
+      - name: Debug APK Path
+        run: ls -R app/build/outputs/apk/release/
+
       - name: Upload APK
-        uses: actions/upload-artifact@v4  # 修改为 v4 最新版
+        uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/build/outputs/apk/release/app-release.apk  # 确保路径正确
+          path: app/build/outputs/apk/release/*.apk  # 使用通配符适配动态文件名
