@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Signed Android APK
 
 on:
   push:
@@ -9,27 +9,43 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # 步骤 1：拉取代码
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 步骤 2：设置 JDK 环境
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: '11'
           distribution: 'temurin'
 
+      # 步骤 3：解码并写入密钥库文件（新增关键步骤！）
+      - name: Setup Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/my-release-key.jks
+          ls -l app/my-release-key.jks  # 验证文件存在
+
+      # 步骤 4：赋予 Gradle 执行权限
       - name: Grant Gradle permission
         run: chmod +x gradlew
 
+      # 步骤 5：构建签名 APK（新增环境变量传递）
       - name: Build Release APK
         run: ./gradlew assembleRelease
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      # 调试步骤：验证 APK 路径和文件名
+      # 步骤 6：调试路径（验证文件生成）
       - name: Debug APK Path
         run: ls -R app/build/outputs/apk/release/
 
+      # 步骤 7：上传 APK（优化通配符路径）
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/build/outputs/apk/release/*.apk  # 使用通配符适配动态文件名
+          path: app/build/outputs/apk/release/*.apk
+          retention-days: 7  # 自动清理旧文件
